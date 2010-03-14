@@ -1,0 +1,26 @@
+#!/bin/sh -e
+
+#
+# Unmount tmpfs from /dev
+#
+
+sanity_check() {
+  if ! mountpoint -q /dev; then
+    echo "No tmpfs is mounted over /dev. Skipping."
+    exit 0
+  fi
+  if ! mount | grep -q 'tmpfs on /dev type tmpfs'; then
+    echo "Unknown filesystem is mounted over /dev. Skipping."
+    exit 0
+  fi
+}
+
+umount_tmpfs() {
+  if ! umount -n -l /dev; then
+    echo "Unable to unmount tmpfs from /dev. Aborting."
+    exit 1
+  fi
+}
+
+sanity_check
+umount_tmpfs

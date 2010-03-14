@@ -1,0 +1,16 @@
+Source: mdev
+Section: core
+Priority: required
+Maintainer: Mikhail Gusarov <dottedmag@dottedmag.net>
+Build-Depends: debhelper (>= 7)
+XCS-Cross-Host-Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: mdev
+Architecture: all
+Depends: busybox | busybox-heavy | busybox-static
+Description: small /dev manager
+ mdev is /dev manager for small devices.
+ .
+ This package relies on busybox to provide actual /sbin/mdev and just contains
+ initscript.

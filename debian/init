@@ -1,0 +1,98 @@
+#!/bin/sh -e
+
+#
+# Start mdev, mounting /dev if not provided by devtmpfs
+#
+
+HELPERS_DIR=/lib/mdev/helpers
+PATH=$PATH:$HELPERS_DIR
+
+TMPFS_SIZE=5m
+HOTPLUG_HANDLER=/sbin/mdev
+
+if [ -f /etc/default/mdev ]; then
+  . /etc/default/mdev
+fi
+
+[ -x $HOTPLUG_HANDLER ] || exit 0
+
+umount_fs_in_dev() {
+  if mountpoint -q /dev/pts/; then
+    umount -n -l /dev/pts/
+  fi
+
+  if mountpoint -q /dev/shm/; then
+    umount -n -l /dev/shm/
+  fi
+}
+
+mount_fs_in_dev() {
+  mkdir -p /dev/pts
+  if ! mount -t devpts devpts /dev/pts; then
+    echo "Error: unable to mount /dev/pts over tmpfs on /dev. Aborting."
+    exit 1
+  fi
+
+  mkdir -p /dev/shm
+  if ! mount -o nosuid,nodev,size=$TMPFS_SIZE -t tmpfs tmpfs /dev/shm; then
+    echo "unable to mount /dev/shm over tmpfs on /dev. Aborting."
+    exit 1
+  fi
+}
+
+update_mdev_conf() {
+  cat /etc/mdev.conf.d/[0-9]* > /dev/.mdev.conf
+}
+
+start_mdev() {
+  update_mdev_conf
+  echo > /dev/mdev.seq
+  echo $HOTPLUG_HANDLER > /proc/sys/kernel/hotplug
+  mdev -s
+}
+
+case "$1" in
+  start)
+    echo > /proc/sys/kernel/hotplug
+
+    if mountpoint -q /dev; then
+      if mount | grep -q 'mdev-tmpfs on /dev type tmpfs'; then
+        echo "mdev is already active on /dev. Skipping."
+        exit 0
+      fi
+      # There is something else mounted on /dev. devtmpfs probably. We can start
+      # mdev asynchronously
+      (mount_fs_in_dev; start_mdev) &
+    else
+      mount_dev
+      mount_fs_in_dev
+      start_mdev
+    fi
+        
+    ;;
+  stop)
+    echo > /proc/sys/kernel/hotplug
+
+    if ! mountpoint -q /dev; then
+      echo "mdev is not active on /dev. Skipping."
+      exit 0
+    fi
+
+    umount_fs_in_dev
+    if mount | grep -q 'mdev-tmpfs on /dev type tmpfs'; then
+      umount_dev
+    fi
+    ;;
+
+  restart|force-reload)
+    $0 stop
+    $0 start
+    ;;
+
+  *)
+    echo "Usage: /etc/init.d/mdev {start|stop|restart|force-reload}"
+    exit 1
+    ;;
+esac
+
+exit 0

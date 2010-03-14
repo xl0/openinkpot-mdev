@@ -1,0 +1,42 @@
+#!/bin/sh -e
+
+#
+# Mount fresh tmpfs on /dev and create a few essential devices.
+#
+
+TMPFS_SIZE=10M
+if [ -f /etc/default/mdev ]; then
+  . /etc/default/mdev
+fi
+
+sanity_check() {
+  if mountpoint -q /dev; then
+    echo "Trying to mount tmpfs over active /dev. Aborting."
+    exit 1
+  fi
+  if ! grep -q tmpfs /proc/filesystems; then
+    echo "mdev needs tmpfs support in kernel. Aborting."
+    exit 1
+  fi
+}
+
+mount_tmpfs() {
+  if ! mount -n -o size=$TMPFS_SIZE,mode=0755 -t tmpfs mdev-tmpfs /dev; then
+    echo "Unable to mount tmpfs over /dev. Aborting."
+    exit 1
+  fi
+}
+
+basic_devices() {
+  mknod /dev/console c 5 1
+  mknod /dev/null c 1 3
+  ln -s /proc/self/fd /dev/fd
+  ln -s /proc/self/fd/0 /dev/stdin
+  ln -s /proc/self/fd/1 /dev/stdout
+  ln -s /proc/self/fd/2 /dev/stderr
+  ln -s /proc/kcore /dev/core
+}
+
+sanity_check
+mount_tmpfs
+basic_devices

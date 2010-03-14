@@ -1,0 +1,5 @@
+mdev (2:1.0) unstable; urgency=low
+
+  * Package split from busybox
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Mon, 15 Mar 2010 00:40:45 +0600
