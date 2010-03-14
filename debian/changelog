@@ -1,4 +1,4 @@
-mdev (2:1.0) unstable; urgency=low
+mdev (2:1.0) zelazny; urgency=low
 
   * Package split from busybox
 
