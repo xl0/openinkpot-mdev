@@ -17,7 +17,7 @@ binary-indep: install
 
 	dh_installdirs
 	dh_install
-	dh_installinit
+	dh_installinit -i --no-start -- start 03 S .
 	dh_link
 	dh_compress
 	dh_fixperms
