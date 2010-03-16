@@ -1,3 +1,10 @@
+mdev (2:1.0.2) zelazny; urgency=low
+
+  * Add workaround for upgrading from broken mdev 2:10
+  * Packaging stylistic fixes.
+
+ -- Mikhail Gusarov <dottedmag@dottedmag.net>  Wed, 17 Mar 2010 04:45:03 +0600
+
 mdev (2:1.0.1) zelazny; urgency=low
 
   * Fix update-rc.d invocation in postinst script
