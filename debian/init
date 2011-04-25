@@ -60,15 +60,15 @@ case "$1" in
         echo "mdev is already active on /dev. Skipping."
         exit 0
       fi
-      # There is something else mounted on /dev. devtmpfs probably. We can start
-      # mdev asynchronously
-      (mount_fs_in_dev; start_mdev) &
+      # There is something else mounted on /dev. devtmpfs probably.
+      mount_fs_in_dev
+      start_mdev
     else
       mount_dev
       mount_fs_in_dev
       start_mdev
     fi
-        
+
     ;;
   stop)
     echo > /proc/sys/kernel/hotplug
